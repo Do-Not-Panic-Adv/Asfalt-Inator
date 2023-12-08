@@ -49,7 +49,7 @@ mod tests {
     #[test]
     fn it_works() {
         println!("it does not");
-        let newshape = Shape::Square(6);
+        let newshape = Shape::Square(5);
         print!("{:?}",newshape.get_action_curve());
 
     }

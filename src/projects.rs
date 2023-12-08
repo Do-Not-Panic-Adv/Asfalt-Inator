@@ -65,10 +65,11 @@ pub(crate) fn mirror_direction(vec: &Vec<Direction>, angle: u32)->Vec<Direction>
             }
         }
         2 =>{
-            for d in vec.len()-1 ..0 {
+            for d in 0..vec.len()-1 {
                 if vec[d] == Direction::Right{
                     v.push(Direction::Left);
                 }
+                println!("debug?");
                 if vec[d] == Direction::Up{
                     v.push(Direction::Down);
                 }
@@ -107,10 +108,11 @@ impl Shape{
                 for i in 0..x {
                     v.push(Direction::Up);
                 }
-                for i in 0..x/2{
+                for i in 0..(x as f32/2.0 ).ceil() as i32{
                     v.push(Direction::Left);
                 }
                 let mut other = mirror_direction(&v, 2);
+                println!("{:?}", other);
                 v.append(&mut other);
             }
             Shape::Rectangle(x, y) => {
