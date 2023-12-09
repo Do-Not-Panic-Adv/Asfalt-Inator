@@ -1,5 +1,6 @@
 use std::ops::Deref;
 use robotics_lib::interface::Direction;
+use robotics_lib::interface::Direction::Up;
 use robotics_lib::world::coordinates::Coordinate;
 // use robotics_lib::interface::Direction;
 //The SalviniTool before building a new type of road must create a project to analise it and understand its need.
@@ -25,6 +26,14 @@ pub fn directioner(d: & Direction)->(i32, i32){
         Direction::Right => {(0,1)}
     }
 }
+pub fn opposite_direction(d: &Direction) -> Direction{
+    match d {
+        Direction::Up => {Direction::Down}
+        Direction::Down => {Direction::Up}
+        Direction::Left => {Direction::Right}
+        Direction::Right => {Direction::Left}
+    }
+}
 #[derive(Clone)]
 pub struct Project{
     pub(crate) curves_action: Vec<Direction>,
@@ -47,8 +56,8 @@ pub enum Shape{
     Rectangle(i32, i32),
     Roundabout(i32),
     Cross(i32),
-    LongLong(i32),
-    LShape(i32, i32)
+    LongLong(i32, Direction),
+    TShape(i32, i32, Direction)
 }
 
 //this mirrors the shape(for the circle/roundabout, but could also be implemented for a
@@ -77,7 +86,6 @@ pub(crate) fn mirror_direction(vec: &Vec<Direction>, angle: u32)->Vec<Direction>
                 if vec[d] == Direction::Right{
                     v.push(Direction::Left);
                 }
-                println!("debug?");
                 if vec[d] == Direction::Up{
                     v.push(Direction::Down);
                 }
@@ -152,15 +160,42 @@ impl Shape{
                 }
                 let other = mirror_direction(&v, 2);
             }
-            Shape::Roundabout(d) => {todo!()}
+            Shape::Roundabout(d) => {todo!()
+            }
             Shape::Cross(l) => {
-                todo!()
+                for _ in 0..*l {
+                    v.push(Direction::Up);
+                }
+                for _ in 0..l/2 {
+                    v.push(Direction::Down)
+                }
+                for _ in 0..l/2 {
+                    v.push(Direction::Right)
+                }
+                for _ in 0..*l {
+                    v.push(Direction::Left);
+                }
             }
-            Shape::LShape(l, s) =>{
-                todo!()
+            Shape::TShape(l, s, direction) =>{
+                // for _ in 0..*l {
+                //     v.push(direction.clone())
+                // }
+                // for _ in 0..l/2 {
+                //     v.push(opposite_direction(direction))
+                // }
+                // for _ in 0..*s {
+                //     match direction {
+                //         Direction::Up => {Direction::Right}
+                //         Direction::Down => {Direction::Left}
+                //         Direction::Left => {}
+                //         Direction::Right => {}
+                //     }
+                // }
             }
-            Shape::LongLong(L) => {
-                todo!()
+            Shape::LongLong(l, direction) => {
+                for i in 0..*l{
+                    v.push(direction.clone());
+                }
             }
         }
         v
