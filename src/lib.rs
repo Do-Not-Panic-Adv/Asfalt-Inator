@@ -1,3 +1,4 @@
+use std::fmt::{Display, Formatter};
 // use std::ops::Deref;
 use robotics_lib::interface::{destroy, go, put, Tools};
 use robotics_lib::runner::{Robot, Runnable};
@@ -12,6 +13,7 @@ pub struct Asfaltinator {
     project_number: i32,
     unfinished_projects: Vec<UnFinishedProject>
 }
+
 impl Tools for Asfaltinator {
 
 }
@@ -21,7 +23,7 @@ impl Asfaltinator {
         Asfaltinator { project_number: 0, unfinished_projects: vec![] }
     }
     //ti dice qunanto vai a sependere (non so se fare passando il robot o passando la cacca addosso), non mi serve a nulla self i guess
-    pub fn design_project(&self, posizione: (usize, usize), shape: Shape, map_size: usize) ->Result<Project, Project>{
+    pub fn design_project(&self, posizione: (usize, usize), shape: Shape) ->Result<Project, Project>{
         let mut rock_needs:u32 = 0;
         let mut energy_needs: usize = 0;
         match shape {
@@ -51,7 +53,7 @@ impl Asfaltinator {
     //-Err if the project was stopped, inside the Err there is an UnFinishedProject that contains
     //the values of a Project + the reason why the project didnt successfully end and the position
     //where it stopped
-    pub fn asfalting(&self, robot: &mut impl Runnable,world: &mut World, project: Project, map: Vec<Vec<Option<Tile>>>)->Result<(), UnFinishedProject>{
+    pub fn asfalting(&self, robot: &mut impl Runnable, world: &mut World, mut project: Project, map: Vec<Vec<Option<Tile>>>) ->Result<(), UnFinishedProject>{
         let number_of_rocks = robot.get_backpack().get_contents();
         let robot_energy = robot.get_energy().get_energy_level();
         let n= 0;
@@ -109,6 +111,7 @@ impl Asfaltinator {
             let go_result = go(robot, world, direction);
             if go_result == Err(CannotWalk) || go_result == Err(OutOfBounds){ return Err(UnFinishedProject::new(project, StopReason::PonteSulloStretto, (robot.get_coordinate().get_row(),robot.get_coordinate().get_col()))); }//ive just built a road so i must be able to walk on it
             if go_result == Err(NotEnoughEnergy) {return Err(UnFinishedProject::new(project, StopReason::LowEnergy, (robot.get_coordinate().get_row(),robot.get_coordinate().get_col()))); }
+            project.curves_action.pop();//or use refcell maybe idk need to try it out someday
         };
    
 
