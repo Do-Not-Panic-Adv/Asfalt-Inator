@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 // use std::ops::Deref;
-use robotics_lib::interface::{destroy, go, put, Tools};
+use robotics_lib::interface::{craft, destroy, go, put, Tools};
 use robotics_lib::runner::{Robot, Runnable};
 use robotics_lib::utils::LibError;
 use robotics_lib::utils::LibError::{CannotWalk, NotEnoughEnergy, OutOfBounds};
@@ -37,6 +37,10 @@ impl Asfaltinator {
             Shape::LShape(l, s) => {}
         }
         todo!()
+    }
+    // trasform everything in rock
+    fn stoning(){
+       // craft()
     }
     //need to add the checks in the robot forse accantonerei la cosa
     pub fn check_project(project: Project)->Result<Project, StopReason>{
