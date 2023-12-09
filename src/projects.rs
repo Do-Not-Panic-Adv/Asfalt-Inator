@@ -1,38 +1,46 @@
 use std::ops::Deref;
-
+use robotics_lib::interface::Direction;
+use robotics_lib::world::coordinates::Coordinate;
 // use robotics_lib::interface::Direction;
 //The SalviniTool before building a new type of road must create a project to analise it and understand its need.
 //the Project struct contains:
 //-action_curves:that describe the path the robot is going to follow to build the road
 //-cost: the amount of energy it is going to take to build the whole project
 //-rock: the amount of rock it is going to need to build the project
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub enum Direction{
-    Up,
-    Down,
-    Left,
-    Right
-}
+
 //Error type given to the user after checking a designed project, and whever there is an
 //interaction in the road building functon
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum StopReason{
     LowEnergy,
     MissingRocks,
-    PonteSulloStretto
+    PonteSulloStretto,
+    NoStop
 }
+pub fn directioner(d: & Direction)->(i32, i32){
+    match d {
+        Direction::Up => {(1,0)}
+        Direction::Down => {(-1,0)}
+        Direction::Left => {(0,-1)}
+        Direction::Right => {(0,1)}
+    }
+}
+#[derive(Clone)]
 pub struct Project{
     pub(crate) curves_action: Vec<Direction>,
     pub(crate) cost: u32,
     pub(crate) rock: u32,
 }
-//ragruppo maybe?
-pub struct UnfinishedProject{
-    pub(crate) start_position: (usize,usize),
+#[derive(Clone)]
+
+pub struct UnFinishedProject {
+    pub start_position: (usize,usize),
+    pub stop_reason: StopReason,
     pub(crate) curves_action: Vec<Direction>,
     pub(crate) cost: u32,
     pub(crate) rock: u32,
 }
+
 
 pub enum Shape{
     Square(u32),
@@ -90,11 +98,28 @@ pub(crate) fn complete_shape(vec: &mut Vec<Direction>){
         vec.append(&mut mirror_direction(&vec, i));
     }
 }
-// impl From<UnfinishedProject> Project{
-//     fn from(){
-//
-//     }
-// }
+impl From<UnFinishedProject> for Project{
+    fn from(unfinished_project: UnFinishedProject) ->Project{
+        Project{
+            curves_action: unfinished_project.curves_action.clone(),
+            cost: unfinished_project.cost,
+            rock: unfinished_project.rock,
+        }
+    }
+}
+
+impl UnFinishedProject{
+    //do i pass the ownership to the function, if the project fail and i get and unfinished project do i delete the prev project?
+    pub fn new(project: Project, stop_reason: StopReason, end_position: (usize, usize)) ->UnFinishedProject{
+        UnFinishedProject {
+            start_position: end_position,
+            stop_reason,
+            curves_action: project.curves_action.clone(),
+            cost: project.cost,
+            rock: project.rock,
+        }
+    }
+}
 
 impl Shape{
     pub fn get_action_curve(&self) ->Vec<Direction>{
@@ -102,17 +127,17 @@ impl Shape{
         match self {
             Shape::Square(side_lenght) => {
                 let x = *side_lenght as i32;
-                for i in 0..x/2{
+                for _ in 0..x/2{
                     v.push(Direction::Right);
                 }
-                for i in 0..x {
+                for _ in 0..x {
                     v.push(Direction::Up);
                 }
-                for i in 0..(x as f32/2.0 ).ceil() as i32{
+                for _ in 0..(x as f32/2.0 ).ceil() as i32{
                     v.push(Direction::Left);
                 }
                 let mut other = mirror_direction(&v, 2);
-                println!("{:?}", other);
+
                 v.append(&mut other);
             }
             Shape::Rectangle(x, y) => {
@@ -129,13 +154,13 @@ impl Shape{
             }
             Shape::Roundabout(d) => {todo!()}
             Shape::Cross(l) => {
-
+                todo!()
             }
             Shape::LShape(l, s) =>{
-
+                todo!()
             }
             Shape::LongLong(L) => {
-
+                todo!()
             }
         }
         v
