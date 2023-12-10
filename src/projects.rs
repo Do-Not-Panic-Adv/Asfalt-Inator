@@ -115,7 +115,14 @@ impl From<UnFinishedProject> for Project{
         }
     }
 }
-
+fn circular(pippo: &mut Vec<Vec<i32>>, k: i32){
+    for j in 0..k {
+        for i in 0..k {
+            if j == ((k*k-(i)*(i))as f32).sqrt().ceil() as i32 || j == ((k*k-(i)*(i))as f32).sqrt().floor() as i32 {pippo[j as usize][i as usize] = 1;}
+        }
+    }
+}
+fn circular_to_direction()
 impl UnFinishedProject{
     //do i pass the ownership to the function, if the project fail and i get and unfinished project do i delete the prev project?
     pub fn new(project: Project, stop_reason: StopReason, end_position: (usize, usize)) ->UnFinishedProject{
