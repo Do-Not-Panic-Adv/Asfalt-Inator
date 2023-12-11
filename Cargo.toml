@@ -5,3 +5,5 @@ edition = "2021"
 
 [dependencies]
 robotics_lib = {registry = "kellnr"}
+#robotics_lib = {path = "../Robotic-Lib"}
+

@@ -1,4 +1,5 @@
 use robotics_lib::interface::Direction;
+
 //The SalviniTool before building a new type of road must create a project to analise it and understand its need.
 //the Project struct contains:
 //-action_curves:that describe the path the robot is going to follow to build the road
@@ -18,49 +19,37 @@ pub enum StopReason {
 #[derive(Clone)]
 pub struct Project {
     pub(crate) curves_action: Vec<Direction>,
-    pub(crate) cost: u32,
-    pub(crate) rock: u32,
 }
 #[derive(Clone)]
 pub struct UnFinishedProject {
     pub start_position: (usize, usize),
     pub stop_reason: StopReason,
     pub(crate) curves_action: Vec<Direction>,
-    pub(crate) cost: u32,
-    pub(crate) rock: u32,
 }
 impl From<UnFinishedProject> for Project {
     fn from(unfinished_project: UnFinishedProject) -> Project {
         Project {
             curves_action: unfinished_project.curves_action.clone(),
-            cost: unfinished_project.cost,
-            rock: unfinished_project.rock,
         }
     }
 }
 impl UnFinishedProject {
-    pub fn new(
-        project: Project,
-        stop_reason: StopReason,
-        end_position: (usize, usize),
-    ) -> UnFinishedProject {
+    pub fn new(project: Project, stop_reason: StopReason, end_position: (usize, usize)) -> UnFinishedProject {
         UnFinishedProject {
             start_position: end_position,
             stop_reason,
             curves_action: project.curves_action.clone(),
-            cost: project.cost,
-            rock: project.rock,
         }
     }
 }
 
 pub enum Shape {
     Square(u32),
-    Rectangle(i32, i32),
+    Rectangle(u32, u32),
     Roundabout(u32),
-    Cross(i32), //its a roman cross
-    LongLong(i32, Direction),
-    TShape(i32, i32, Direction),
+    Cross(u32), //its a roman cross
+    LongLong(u32, Direction),
+    TShape(u32, u32, Direction),
     LShape(u32, u32, Direction),
 }
 impl Shape {
@@ -132,16 +121,16 @@ impl Shape {
                     res.push(direction.clone());
                 }
             }
-            Shape::LShape(long_side, short_side, direction) => {
+            | Shape::LShape(long_side, short_side, direction) => {
                 for _ in 0..*long_side {
                     res.push(direction.clone())
                 }
                 for _ in 0..*short_side {
                     let to_push = match direction {
-                        Direction::Up => Direction::Left,
-                        Direction::Down => Direction::Right,
-                        Direction::Left => Direction::Down,
-                        Direction::Right => Direction::Up,
+                        | Direction::Up => Direction::Left,
+                        | Direction::Down => Direction::Right,
+                        | Direction::Left => Direction::Down,
+                        | Direction::Right => Direction::Up,
                     };
                     res.push(to_push);
                 }
@@ -255,13 +244,7 @@ fn make_circle(size: u32) -> Vec<Direction> {
 fn circular_2x2(pippo: &mut Vec<Vec<i32>>, k: i32) {
     for riga in 0..(k as f32 * (1.0 - (2.0_f32).sqrt() / 2.0)).ceil() as i32 {
         for colonna in 0..k - (k as f32 * (1.0 - (2.0_f32).sqrt() / 2.0)).ceil() as i32 {
-            // print!("{} = {} : ",riga, colonna);
-            // if j == ((k*k-(i)*(i))as f32).sqrt().ceil() as i32 || j == ((k*k-(i)*(i))as f32).sqrt().floor() as i32 {pippo[j as usize][i as usize] = 1;}
-            // print!("{} = {} : ",riga, (k as f32 - (-(colonna as f32).powi(2)+(k as f32).powi(2)).sqrt()).floor() as i32);
-            if riga
-                == ((k as f32) - (-((colonna + 1) as f32).powi(2) + (k as f32).powi(2)).sqrt())
-                    .floor() as i32
-            {
+            if riga == ((k as f32) - (-((colonna + 1) as f32).powi(2) + (k as f32).powi(2)).sqrt()).floor() as i32 {
                 pippo[riga as usize][colonna as usize] = 1;
                 // println!("true");
             }
@@ -316,7 +299,4 @@ fn circle() {
     let mut direction = circular_to_direction(&mut b, k as i32);
     complete_shape(&mut direction);
     print!("{:?}", direction);
-}
-
-
 }
