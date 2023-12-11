@@ -1,13 +1,12 @@
 use robotics_lib::interface::Direction;
-// use robotics_lib::world::coordinates::Coordinate;
 //The SalviniTool before building a new type of road must create a project to analise it and understand its need.
 //the Project struct contains:
 //-action_curves:that describe the path the robot is going to follow to build the road
 //-cost: the amount of energy it is going to take to build the whole project
 //-rock: the amount of rock it is going to need to build the project
 
-//Error type given to the user after checking a designed project, and whever there is an
-//interaction in the road building functon
+///Error type given to the user after checking a designed project and whenever there is an
+///interaction in the road building function
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum StopReason {
     LowEnergy,
@@ -68,7 +67,7 @@ impl Shape {
     pub fn get_action_curve(&self) -> Vec<Direction> {
         let mut res: Vec<Direction> = vec![];
         match self {
-            Shape::Square(side_lenght) => {
+            | Shape::Square(side_lenght) => {
                 let x = *side_lenght as i32;
                 for _ in 0..x / 2 {
                     res.push(Direction::Right);
@@ -82,7 +81,7 @@ impl Shape {
                 let mut other = mirror_direction(&res, 2);
                 res.append(&mut other);
             }
-            Shape::Rectangle(base, height) => {
+            | Shape::Rectangle(base, height) => {
                 for _ in 0..base / 2 {
                     res.push(Direction::Right);
                 }
@@ -94,10 +93,10 @@ impl Shape {
                 }
                 res = mirror_direction(&res, 2);
             }
-            Shape::Roundabout(dimension) => {
+            | Shape::Roundabout(dimension) => {
                 res = make_circle(*dimension);
             }
-            Shape::Cross(l) => {
+            | Shape::Cross(l) => {
                 for _ in 0..*l {
                     res.push(Direction::Up);
                 }
@@ -111,7 +110,7 @@ impl Shape {
                     res.push(Direction::Left);
                 }
             }
-            Shape::TShape(l, s, direction) => {
+            | Shape::TShape(l, s, direction) => {
                 for _ in 0..*l {
                     res.push(direction.clone())
                 }
@@ -120,15 +119,15 @@ impl Shape {
                 }
                 for _ in 0..*s {
                     let to_push = match direction {
-                        Direction::Up => Direction::Right,
-                        Direction::Down => Direction::Left,
-                        Direction::Left => Direction::Up,
-                        Direction::Right => Direction::Down,
+                        | Direction::Up => Direction::Right,
+                        | Direction::Down => Direction::Left,
+                        | Direction::Left => Direction::Up,
+                        | Direction::Right => Direction::Down,
                     };
                     res.push(to_push);
                 }
             }
-            Shape::LongLong(lenght, direction) => {
+            | Shape::LongLong(lenght, direction) => {
                 for _ in 0..*lenght {
                     res.push(direction.clone());
                 }
@@ -161,10 +160,10 @@ impl Shape {
 //1 in module, in the cartesian notation
 pub fn directioner(d: &Direction) -> (i32, i32) {
     match d {
-        Direction::Up => (1, 0),
-        Direction::Down => (-1, 0),
-        Direction::Left => (0, -1),
-        Direction::Right => (0, 1),
+        | Direction::Up => (1, 0),
+        | Direction::Down => (-1, 0),
+        | Direction::Left => (0, -1),
+        | Direction::Right => (0, 1),
     }
 }
 
@@ -172,10 +171,10 @@ pub fn directioner(d: &Direction) -> (i32, i32) {
 //output the opposite direction
 pub(crate) fn opposite_direction(d: &Direction) -> Direction {
     match d {
-        Direction::Up => Direction::Down,
-        Direction::Down => Direction::Up,
-        Direction::Left => Direction::Right,
-        Direction::Right => Direction::Left,
+        | Direction::Up => Direction::Down,
+        | Direction::Down => Direction::Up,
+        | Direction::Left => Direction::Right,
+        | Direction::Right => Direction::Left,
     }
 }
 
@@ -188,7 +187,7 @@ pub(crate) fn opposite_direction(d: &Direction) -> Direction {
 pub(crate) fn mirror_direction(vec: &Vec<Direction>, angle: u32) -> Vec<Direction> {
     let mut v: Vec<Direction> = vec![];
     match angle {
-        0 => {
+        | 0 => {
             for d in (0..vec.len()).rev() {
                 if vec[d] == Direction::Right {
                     v.push(Direction::Up);
@@ -198,7 +197,7 @@ pub(crate) fn mirror_direction(vec: &Vec<Direction>, angle: u32) -> Vec<Directio
                 }
             }
         }
-        1 => {
+        | 1 => {
             for d in (0..vec.len()).rev() {
                 if vec[d] == Direction::Right {
                     v.push(Direction::Left);
@@ -207,7 +206,7 @@ pub(crate) fn mirror_direction(vec: &Vec<Direction>, angle: u32) -> Vec<Directio
                 }
             }
         }
-        2 => {
+        | 2 => {
             for d in 0..vec.len() - 1 {
                 if vec[d] == Direction::Right {
                     v.push(Direction::Left);
@@ -223,7 +222,7 @@ pub(crate) fn mirror_direction(vec: &Vec<Direction>, angle: u32) -> Vec<Directio
                 }
             }
         }
-        _ => {}
+        | _ => {}
     }
     v
 }
@@ -317,4 +316,7 @@ fn circle() {
     let mut direction = circular_to_direction(&mut b, k as i32);
     complete_shape(&mut direction);
     print!("{:?}", direction);
+}
+
+
 }

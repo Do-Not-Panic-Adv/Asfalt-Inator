@@ -28,8 +28,6 @@ impl Asfaltinator {
     }
     //ti dice qunanto vai a sependere (non so se fare passando il robot o passando la cacca addosso), non mi serve a nulla self i guess
     pub fn design_project(&mut self, shape: Shape) -> Project {
-        let _rock_needs: u32 = 0;
-        let _energy_needs: usize = 0;
         self.project_number += 1;
         return Project {
             curves_action: shape.get_action_curve(),
@@ -108,10 +106,8 @@ impl Asfaltinator {
                         TileType::DeepWater | TileType::Lava => {
                             put(robot, world, Content::Rock(0), 3, direction.clone())
                         }
-                        TileType::ShallowWater => {
-                            put(robot, world, Content::Rock(0), 2, direction.clone())
-                        }
-                        TileType::Sand | TileType::Grass | TileType::Snow | TileType::Hill => {
+                        | TileType::ShallowWater => put(robot, world, Content::Rock(0), 2, direction.clone()),
+                        | TileType::Sand | TileType::Grass | TileType::Snow | TileType::Hill => {
                             put(robot, world, Content::Rock(0), 1, direction.clone())
                         }
                         TileType::Mountain => {
@@ -213,6 +209,8 @@ impl Asfaltinator {
 }
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     //it compiles but not work as i thought lol
 
     #[test]
