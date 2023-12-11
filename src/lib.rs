@@ -11,33 +11,29 @@ use crate::projects::StopReason::PonteSulloStretto;
 
 mod projects;
 
+//
 pub struct Asfaltinator {
     project_number: i32,
     unfinished_projects: Vec<UnFinishedProject>
 }
 
-impl Tools for Asfaltinator {
-
-}
+impl Tools for Asfaltinator {}
 
 impl Asfaltinator {
     pub fn new() -> Self{
         Asfaltinator { project_number: 0, unfinished_projects: vec![] }
     }
     //ti dice qunanto vai a sependere (non so se fare passando il robot o passando la cacca addosso), non mi serve a nulla self i guess
-    pub fn design_project(&self, shape: Shape) ->Project{
+    pub fn design_project(&mut self, shape: Shape) ->Project{
         let rock_needs:u32 = 0;
         let energy_needs: usize = 0;
+        self.project_number += 1;
         return Project{
             curves_action: shape.get_action_curve(),
             cost: 0,
             rock: 0,
-
         }
-    }
-    // trasform everything in rock
-    fn stoning(){
-       // craft()
+
     }
     //need to add the checks in the robot forse accantonerei la cosa
     pub fn check_project(project: Project)->Result<Project, StopReason>{
