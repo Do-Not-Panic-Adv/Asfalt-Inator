@@ -199,8 +199,8 @@ impl Shape {
 //1 in module, in the cartesian notation
 pub fn directioner(d: &Direction) -> (i32, i32) {
     match d {
-        | Direction::Up => (1, 0),
-        | Direction::Down => (-1, 0),
+        | Direction::Up => (-1, 0),
+        | Direction::Down => (1, 0),
         | Direction::Left => (0, -1),
         | Direction::Right => (0, 1),
     }

@@ -7,7 +7,9 @@ use robotics_lib::world::tile::{Content, Tile, TileType};
 use robotics_lib::world::World;
 use std::cmp::max;
 use std::mem;
+use std::mem::min_align_of;
 use std::ops::Deref;
+use robotics_lib::interface::Direction::Up;
 
 pub mod construction_projects;
 pub use construction_projects::Shape;
@@ -64,7 +66,7 @@ pub use construction_projects::Shape;
 ///                     }
 ///                 }
 ///                 Err(_) => {
-///                     println!("Project not gone well");
+///                     println!("Too many unfinished projects");
 ///                 }
 ///             }
 ///
@@ -137,22 +139,23 @@ impl Asphaltinator {
         robot: &mut impl Runnable,
         world: &mut World,
         project: Project,
-        map: Vec<Vec<Option<Tile>>>,
+
     ) -> Result<(), UnFinishedProject> {
+        let mut map= robot_map(world).unwrap();
         let mut sequence = project.curves_action.clone();
         let mut copy_sequence = project.curves_action.clone();
         for direction in copy_sequence.iter_mut() {
             println!("I am at ({},{}) and i want to put with direction: {:?}",robot.get_coordinate().get_row(),
                      robot.get_coordinate().get_col(),direction);
             let shift = directioner(&direction);
-            // TODO: perchè col e poi row?
-            if let Some(target_tile) = map[((robot.get_coordinate().get_row() as i32) + shift.0) as usize]
-                [((robot.get_coordinate().get_col() as i32) + shift.1) as usize]
-                .clone()
-            {
+            let map_x= ((robot.get_coordinate().get_row() as i32) + shift.0) as usize;
+            let map_y= ((robot.get_coordinate().get_col() as i32) + shift.1) as usize;
+            println!("i need to go to ({},{}) and i am watching to:",map_x, map_y);
+            if map_x < map.len() && map_y < map.len(){
+                let target_tile= map[map_x][map_y].clone().unwrap();
                 let target_tile_type = target_tile.tile_type;
                 let mut stop_type = match target_tile_type {
-                    | TileType::Street => Ok(0),
+                    | TileType::Street =>{println!("street ok 0"); Ok(0)},
                     | TileType::DeepWater | TileType::Lava => put(robot, world, Content::Rock(0), 3, direction.clone()),
                     | TileType::ShallowWater => put(robot, world, Content::Rock(0), 2, direction.clone()),
                     | TileType::Sand | TileType::Grass | TileType::Snow | TileType::Hill => {
@@ -162,10 +165,12 @@ impl Asphaltinator {
                     | TileType::Teleport(_) | TileType::Wall => Err(LibError::OutOfBounds),
                 };
                 //if error is caused by MustDestroyContentFirst, it trys to destroy it
+                map=robot_map(world).unwrap();
                 println!("StopType:{:?}",stop_type);
                 if stop_type == Err(LibError::MustDestroyContentFirst) {
                     match destroy(robot, world, direction.clone()) {
                         | Ok(_) => {
+                            println!("destroy ok(0)");
                             stop_type = Ok(0);
                         }
                         | Err(destroying_error) => {
@@ -184,7 +189,7 @@ impl Asphaltinator {
                     }
                     //try to place it again
                     stop_type = match target_tile_type {
-                        | TileType::Street => Ok(0),
+                        | TileType::Street => { println!("destroy ok(0)"); Ok(0)}
                         | TileType::DeepWater | TileType::Lava => {
                             put(robot, world, Content::Rock(0), 3, direction.clone())
                         }
@@ -205,8 +210,11 @@ impl Asphaltinator {
                 //there are no problems, just keep swimming <_>
                 if !stop_type.is_err() {
                     stop_type = match go(robot, world, direction.clone()) {
-                        | Ok(_) => Ok(0),
-                        | Err(stop_type_error) => Err(stop_type_error),
+                        | Ok(_) => {
+                            map=robot_map(world).unwrap();
+                            Ok(0)
+                        }
+                        | Err(stop_type_error) => {Err(stop_type_error)}
                     }
                 }
                 //final match to check the final result of the operation
@@ -217,6 +225,7 @@ impl Asphaltinator {
                     }
                     | Err(error_type) => match error_type {
                         | LibError::NotEnoughEnergy => {
+                            println!("ERROR");
                             return Err(UnFinishedProject {
                                 start_position: (robot.get_coordinate().get_row(), robot.get_coordinate().get_col()),
                                 stop_reason: StopReason::LowEnergy,
@@ -224,6 +233,7 @@ impl Asphaltinator {
                             })
                         }
                         | LibError::OutOfBounds | LibError::CannotDestroy | LibError::WrongContentUsed => {
+                            println!("ERROR");
                             return Err(UnFinishedProject {
                                 start_position: (robot.get_coordinate().get_row(), robot.get_coordinate().get_col()),
                                 stop_reason: StopReason::MissionImpossible,
@@ -231,6 +241,7 @@ impl Asphaltinator {
                             })
                         }
                         | LibError::NotEnoughContentInBackPack => {
+                            println!("ERROR");
                             return Err(UnFinishedProject {
                                 start_position: (robot.get_coordinate().get_row(), robot.get_coordinate().get_col()),
                                 stop_reason: StopReason::MissingRocks,
@@ -250,6 +261,13 @@ impl Asphaltinator {
                         }
                     },
                 }
+            }
+            else{
+                return Err(UnFinishedProject {
+                    start_position: (robot.get_coordinate().get_row(), robot.get_coordinate().get_col()),
+                    stop_reason: StopReason::LowEnergy,
+                    curves_action: sequence,
+                })
             }
         }
         Ok(())
@@ -271,7 +289,7 @@ impl Asphaltinator {
                     virtual_position.1+=1;
                 }
             }
-            if virtual_position.0 <0 || virtual_position.1 <0 {
+            if virtual_position.0 <0 || virtual_position.1 <0 || virtual_position.0> map_dim as i32 || virtual_position.1> map_dim as i32 {
                 return false;
             }
         }
