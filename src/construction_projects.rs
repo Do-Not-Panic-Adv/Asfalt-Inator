@@ -121,7 +121,7 @@ impl Shape {
                 for _ in 0..*height {
                     res.push(Direction::Up);
                 }
-                for _ in 0..base {
+                for _ in 0..*base {
                     res.push(Direction::Left);
                 }
                 for _ in 0..*height {
