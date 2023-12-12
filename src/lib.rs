@@ -1,6 +1,6 @@
 use crate::construction_projects::StopReason::MissionImpossible;
 use crate::construction_projects::{directioner, Project,  StopReason, UnFinishedProject};
-use construction_projects::Shape;
+pub use construction_projects::Shape;
 use robotics_lib::interface::{destroy, go, put, robot_map, Direction, Tools};
 use robotics_lib::runner::Runnable;
 use robotics_lib::utils::LibError;
