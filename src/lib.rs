@@ -95,51 +95,16 @@ impl Asphaltinator {
         project: &Project
     ) -> Result<(), StopReason> {
 
-        // I DONT KNOW HOW THE MAP WORKS AND IM TIRED PLS FIX THIS ASAP... i have to add
-        // the max right to the coordinate, but i dont know if i have to add the x part or
-        // y of the position of the robot ty
-
         //Just checks if the project is inside the map in the whole project
         let (x_position, y_position) = (robot.get_coordinate().get_row(), robot.get_coordinate().get_col());
         let map_size = robot_map(world).expect("need to check").len();
-        let mut max_up = 0;
-        let mut max_up_aux:usize = 0;
-        let mut max_left = 0;
-        let mut max_left_aux: usize = 0;
-        let mut max_down = 0;
-        let mut max_down_aux: usize = 0;
-        let mut max_right = 0;
-        let mut max_right_aux: usize = 0;
-        for direction in project.curves_action.iter() {
-            match direction {
-                | Direction::Up => {
-                    max_up += 1;
-                    max_down -=1;
-                }
-                | Direction::Down => {
-                    max_up -= 1;
-                    max_down +=1;
-                }
-                | Direction::Left => {
-                    max_left += 1;
-                    max_right -=1;
-                }
-                | Direction::Right => {
-                    max_right += 1;
-                    max_left -=1;
-                }
-            }
-            max_left_aux = max(max_left_aux, max_left);
-            max_up_aux = max(max_up_aux, max_up);
-            max_down_aux = max(max_down_aux, max_down);
-            max_right_aux = max(max_right_aux, max_right);
-        }
-        if map_size < (max_right_aux + y_position ) || map_size < (max_up_aux + x_position){
+        let possible=Asphaltinator::check_directions_allowed(
+            x_position,y_position,&project.curves_action, map_size);
+
+        if !possible{
             return Err(MissionImpossible);
         }
-        if 0 >= (max_left_aux as i32 + y_position as i32) || 0 >=  (max_down_aux as i32 + x_position as i32) {
-            return Err(MissionImpossible);
-        }
+
         //checks if has minimum energy and rocks
         let robot_rocks = robot.get_backpack().get_contents();
         let robot_rocks = robot_rocks.get(&Content::Rock(0)).unwrap();
@@ -270,6 +235,29 @@ impl Asphaltinator {
             }
         }
         Ok(())
+    }
+    fn check_directions_allowed(robot_x: usize, robot_y: usize, curves: &Vec<Direction>, map_dim:usize)->bool{
+        let mut virtual_position:(i32,i32) =(robot_x as i32, robot_y as i32);
+        for direction in curves.iter(){
+            match direction {
+                | Direction::Up => {
+                    virtual_position.0-=1;
+                }
+                | Direction::Down => {
+                    virtual_position.0+=1;
+                }
+                | Direction::Left => {
+                    virtual_position.1-=1;
+                }
+                | Direction::Right => {
+                    virtual_position.1+=1;
+                }
+            }
+            if virtual_position.0 <0 || virtual_position.1 <0 {
+                return false;
+            }
+        }
+        return true;
     }
 }
 #[cfg(test)]
