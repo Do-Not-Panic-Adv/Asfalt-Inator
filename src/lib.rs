@@ -213,7 +213,7 @@ impl Asphaltinator {
                 match stop_type {
                     | Ok(_) => {
                         sequence.remove(0);
-                        return Ok(());
+                        //  return Ok(()); se ritorni esci dal for dopo 1 operazioen , no bueno
                     }
                     | Err(error_type) => match error_type {
                         | LibError::NotEnoughEnergy => {
