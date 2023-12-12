@@ -1,6 +1,5 @@
 use crate::construction_projects::StopReason::MissionImpossible;
 use crate::construction_projects::{directioner, Project,  StopReason, UnFinishedProject};
-pub use construction_projects::Shape;
 use robotics_lib::interface::{destroy, go, put, robot_map, Direction, Tools};
 use robotics_lib::runner::Runnable;
 use robotics_lib::utils::LibError;
@@ -10,8 +9,8 @@ use std::cmp::max;
 use std::mem;
 use std::ops::Deref;
 
-mod construction_projects;
-
+pub mod construction_projects;
+pub use construction_projects::Shape;
 /// -----Welcommen in the Asphalt-inators house, entry pls!-----
 /// # Tool: Asphaltinator
 /// a useful tool used to plan and build Streets on the map to get where you want, when u want,
