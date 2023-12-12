@@ -127,7 +127,7 @@ impl Shape {
                 for _ in 0..*height {
                     res.push(Direction::Down);
                 }
-                for _ in 0..base / 2 {
+                for _ in 0.. ((*base as f32/ 2f32).ceil() as usize) {
                     res.push(Direction::Right);
                 }
 
