@@ -142,6 +142,8 @@ impl Asphaltinator {
         let mut sequence = project.curves_action.clone();
         let mut copy_sequence = project.curves_action.clone();
         for direction in copy_sequence.iter_mut() {
+            println!("I am at ({},{}) and i want to put with direction: {:?}",robot.get_coordinate().get_row(),
+                     robot.get_coordinate().get_col(),direction);
             let shift = directioner(&direction);
             if let Some(target_tile) = map[((robot.get_coordinate().get_col() as i32) + shift.0) as usize]
                 [((robot.get_coordinate().get_row() as i32) + shift.1) as usize]
