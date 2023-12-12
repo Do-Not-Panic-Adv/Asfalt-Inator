@@ -121,10 +121,16 @@ impl Shape {
                 for _ in 0..*height {
                     res.push(Direction::Up);
                 }
-                for _ in 0..base / 2 {
+                for _ in 0..base {
                     res.push(Direction::Left);
                 }
-                res = mirror_direction(&res, 2);
+                for _ in 0..*height {
+                    res.push(Direction::Down);
+                }
+                for _ in 0..base / 2 {
+                    res.push(Direction::Right);
+                }
+
             }
             | Shape::Roundabout(dimension) => {
                 res = make_circle(*dimension);
