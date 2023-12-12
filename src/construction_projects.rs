@@ -127,10 +127,9 @@ impl Shape {
                 for _ in 0..*height {
                     res.push(Direction::Down);
                 }
-                for _ in 0.. ((*base as f32/ 2f32).ceil() as usize) {
+                for _ in 0..((*base as f32 / 2f32).ceil() as usize) {
                     res.push(Direction::Right);
                 }
-
             }
             | Shape::Roundabout(dimension) => {
                 res = make_circle(*dimension);

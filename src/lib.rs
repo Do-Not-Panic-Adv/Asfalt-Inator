@@ -1,18 +1,16 @@
-use crate::construction_projects::StopReason::MissionImpossible;
-use crate::construction_projects::{directioner, Project,  StopReason, UnFinishedProject};
 use robotics_lib::interface::{destroy, go, put, robot_map, Direction, Tools};
 use robotics_lib::runner::Runnable;
 use robotics_lib::utils::LibError;
-use robotics_lib::world::tile::{Content, Tile, TileType};
+use robotics_lib::world::tile::{Content, TileType};
 use robotics_lib::world::World;
-use std::cmp::max;
-use std::mem;
-use std::mem::min_align_of;
-use std::ops::Deref;
-use robotics_lib::interface::Direction::Up;
+
+pub use construction_projects::Shape;
+
+use crate::construction_projects::StopReason::MissionImpossible;
+use crate::construction_projects::{directioner, Project, StopReason, UnFinishedProject};
 
 pub mod construction_projects;
-pub use construction_projects::Shape;
+
 /// -----Welcommen in the Asphalt-inators house, entry pls!-----
 /// # Tool: Asphaltinator
 /// a useful tool used to plan and build Streets on the map to get where you want, when u want,
@@ -105,19 +103,14 @@ impl Asphaltinator {
             Err(())
         }
     }
-    pub fn check_project_here(
-        robot: &impl Runnable,
-        world: &World,
-        project: &Project
-    ) -> Result<(), StopReason> {
-
+    pub fn check_project_here(robot: &impl Runnable, world: &World, project: &Project) -> Result<(), StopReason> {
         //Just checks if the project is inside the map in the whole project
         let (x_position, y_position) = (robot.get_coordinate().get_row(), robot.get_coordinate().get_col());
         let map_size = robot_map(world).expect("need to check").len();
-        let possible=Asphaltinator::check_directions_allowed(
-            x_position,y_position,&project.curves_action, map_size);
+        let possible =
+            Asphaltinator::check_directions_allowed(x_position, y_position, &project.curves_action, map_size);
 
-        if !possible{
+        if !possible {
             return Err(MissionImpossible);
         }
 
@@ -134,29 +127,31 @@ impl Asphaltinator {
         Ok(())
     }
 
+    #[allow(unused_assignments)]
     pub fn asfalting(
         &self,
         robot: &mut impl Runnable,
         world: &mut World,
         project: Project,
-
     ) -> Result<(), UnFinishedProject> {
-        let mut map= robot_map(world).unwrap();
+        let mut map = robot_map(world).unwrap();
         let mut sequence = project.curves_action.clone();
         let mut copy_sequence = project.curves_action.clone();
         for direction in copy_sequence.iter_mut() {
             //println!("I am at ({},{}) and i want to put with direction: {:?}",robot.get_coordinate().get_row(),
             //robot.get_coordinate().get_col(),direction);
             let shift = directioner(&direction);
-            let map_x= ((robot.get_coordinate().get_row() as i32) + shift.0) as usize;
-            let map_y= ((robot.get_coordinate().get_col() as i32) + shift.1) as usize;
+            let map_x = ((robot.get_coordinate().get_row() as i32) + shift.0) as usize;
+            let map_y = ((robot.get_coordinate().get_col() as i32) + shift.1) as usize;
             //println!("i need to go to ({},{}) and i am watching to:",map_x, map_y);
-            if map_x < map.len() && map_y < map.len(){
-                let target_tile= map[map_x][map_y].clone().unwrap();
+            if map_x < map.len() && map_y < map.len() {
+                let target_tile = map[map_x][map_y].clone().unwrap();
                 let target_tile_type = target_tile.tile_type;
                 let mut stop_type = match target_tile_type {
-                    | TileType::Street =>{//println!("street ok 0");
-                        Ok(0)},
+                    | TileType::Street => {
+                        //println!("street ok 0");
+                        Ok(0)
+                    }
                     | TileType::DeepWater | TileType::Lava => put(robot, world, Content::Rock(0), 3, direction.clone()),
                     | TileType::ShallowWater => put(robot, world, Content::Rock(0), 2, direction.clone()),
                     | TileType::Sand | TileType::Grass | TileType::Snow | TileType::Hill => {
@@ -166,13 +161,13 @@ impl Asphaltinator {
                     | TileType::Teleport(_) | TileType::Wall => Err(LibError::OutOfBounds),
                 };
                 //if error is caused by MustDestroyContentFirst, it trys to destroy it
-                map=robot_map(world).unwrap();
+                map = robot_map(world).unwrap();
                 //println!("StopType:{:?}",stop_type);
                 if stop_type == Err(LibError::MustDestroyContentFirst) {
                     match destroy(robot, world, direction.clone()) {
                         | Ok(_) => {
                             //println!("destroy ok(0)");
-                            map=robot_map(world).unwrap();
+                            map = robot_map(world).unwrap();
                             stop_type = Ok(0);
                         }
                         | Err(destroying_error) => {
@@ -191,7 +186,10 @@ impl Asphaltinator {
                     }
                     //try to place it again
                     stop_type = match target_tile_type {
-                        | TileType::Street => { println!("destroy ok(0)"); Ok(0)}
+                        | TileType::Street => {
+                            println!("destroy ok(0)");
+                            Ok(0)
+                        }
                         | TileType::DeepWater | TileType::Lava => {
                             put(robot, world, Content::Rock(0), 3, direction.clone())
                         }
@@ -213,10 +211,10 @@ impl Asphaltinator {
                 if !stop_type.is_err() {
                     stop_type = match go(robot, world, direction.clone()) {
                         | Ok(_) => {
-                            map=robot_map(world).unwrap();
+                            map = robot_map(world).unwrap();
                             Ok(0)
                         }
-                        | Err(stop_type_error) => {Err(stop_type_error)}
+                        | Err(stop_type_error) => Err(stop_type_error),
                     }
                 }
                 //final match to check the final result of the operation
@@ -232,7 +230,7 @@ impl Asphaltinator {
                                 start_position: (robot.get_coordinate().get_row(), robot.get_coordinate().get_col()),
                                 stop_reason: StopReason::LowEnergy,
                                 curves_action: sequence,
-                            })
+                            });
                         }
                         | LibError::OutOfBounds | LibError::CannotDestroy | LibError::WrongContentUsed => {
                             println!("ERROR");
@@ -240,7 +238,7 @@ impl Asphaltinator {
                                 start_position: (robot.get_coordinate().get_row(), robot.get_coordinate().get_col()),
                                 stop_reason: StopReason::MissionImpossible,
                                 curves_action: sequence,
-                            })
+                            });
                         }
                         | LibError::NotEnoughContentInBackPack => {
                             println!("ERROR");
@@ -248,7 +246,7 @@ impl Asphaltinator {
                                 start_position: (robot.get_coordinate().get_row(), robot.get_coordinate().get_col()),
                                 stop_reason: StopReason::MissingRocks,
                                 curves_action: sequence,
-                            })
+                            });
                         }
                         //checked before
                         // MustDestroyContentFirst => {}
@@ -263,49 +261,43 @@ impl Asphaltinator {
                         }
                     },
                 }
-            }
-            else{
+            } else {
                 return Err(UnFinishedProject {
                     start_position: (robot.get_coordinate().get_row(), robot.get_coordinate().get_col()),
                     stop_reason: StopReason::LowEnergy,
                     curves_action: sequence,
-                })
+                });
             }
         }
         Ok(())
     }
-    fn check_directions_allowed(robot_x: usize, robot_y: usize, curves: &Vec<Direction>, map_dim:usize)->bool{
-        let mut virtual_position:(i32,i32) =(robot_x as i32, robot_y as i32);
-        for direction in curves.iter(){
+    fn check_directions_allowed(robot_x: usize, robot_y: usize, curves: &Vec<Direction>, map_dim: usize) -> bool {
+        let mut virtual_position: (i32, i32) = (robot_x as i32, robot_y as i32);
+        for direction in curves.iter() {
             match direction {
                 | Direction::Up => {
-                    virtual_position.0-=1;
+                    virtual_position.0 -= 1;
                 }
                 | Direction::Down => {
-                    virtual_position.0+=1;
+                    virtual_position.0 += 1;
                 }
                 | Direction::Left => {
-                    virtual_position.1-=1;
+                    virtual_position.1 -= 1;
                 }
                 | Direction::Right => {
-                    virtual_position.1+=1;
+                    virtual_position.1 += 1;
                 }
             }
-            if virtual_position.0 <0 || virtual_position.1 <0 || virtual_position.0> map_dim as i32 || virtual_position.1> map_dim as i32 {
+            if virtual_position.0 < 0
+                || virtual_position.1 < 0
+                || virtual_position.0 > map_dim as i32
+                || virtual_position.1 > map_dim as i32
+            {
                 return false;
             }
         }
         return true;
     }
-}
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    //it compiles but not work as i thought lol
-
-    #[test]
-    fn it_works() {}
 }
 
 // ⡙⡔⢃⠲⡌⠦⣉⠖⡰⣉⠦⡙⢢⠜⡒⢌⡊⢜⡠⢍⠢⣉⠱⢂⠍⡰⢉⠆⡱⢈⠒⡄⢊⠔⡡⢂⠍⡔⢊⠔⡡⠑⡌⠰⡈⠔⡡⠘⡄⢃⠒⡄⢣⠐⢢⠉⢆⡘⠔⡡⠚⡄⣃⠣⡑⣂⠓⠤⡙⢢⠜⣠⠣⣑

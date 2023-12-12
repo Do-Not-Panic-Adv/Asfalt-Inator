@@ -1,9 +1,11 @@
 [package]
-name = "Salvinibot"
+name = "asfalt_inator"
 version = "0.1.0"
 edition = "2021"
+authors = ["Enrico Dalla Cia", "Matteo Bregola", "Marco Pulze", "Riccardo Libanora"]
+description = "a platypus? PERRY the plat- sorry about that. This tool allows you to quickly design and build roads in various shapes"
+readme = "README.md"
 
 [dependencies]
 robotics_lib = {registry = "kellnr"}
-#robotics_lib = {path = "../Robotic-Lib"}
 
