@@ -145,17 +145,18 @@ impl Asphaltinator {
         let mut sequence = project.curves_action.clone();
         let mut copy_sequence = project.curves_action.clone();
         for direction in copy_sequence.iter_mut() {
-            println!("I am at ({},{}) and i want to put with direction: {:?}",robot.get_coordinate().get_row(),
-                     robot.get_coordinate().get_col(),direction);
+            //println!("I am at ({},{}) and i want to put with direction: {:?}",robot.get_coordinate().get_row(),
+            //robot.get_coordinate().get_col(),direction);
             let shift = directioner(&direction);
             let map_x= ((robot.get_coordinate().get_row() as i32) + shift.0) as usize;
             let map_y= ((robot.get_coordinate().get_col() as i32) + shift.1) as usize;
-            println!("i need to go to ({},{}) and i am watching to:",map_x, map_y);
+            //println!("i need to go to ({},{}) and i am watching to:",map_x, map_y);
             if map_x < map.len() && map_y < map.len(){
                 let target_tile= map[map_x][map_y].clone().unwrap();
                 let target_tile_type = target_tile.tile_type;
                 let mut stop_type = match target_tile_type {
-                    | TileType::Street =>{println!("street ok 0"); Ok(0)},
+                    | TileType::Street =>{//println!("street ok 0");
+                        Ok(0)},
                     | TileType::DeepWater | TileType::Lava => put(robot, world, Content::Rock(0), 3, direction.clone()),
                     | TileType::ShallowWater => put(robot, world, Content::Rock(0), 2, direction.clone()),
                     | TileType::Sand | TileType::Grass | TileType::Snow | TileType::Hill => {
@@ -166,11 +167,12 @@ impl Asphaltinator {
                 };
                 //if error is caused by MustDestroyContentFirst, it trys to destroy it
                 map=robot_map(world).unwrap();
-                println!("StopType:{:?}",stop_type);
+                //println!("StopType:{:?}",stop_type);
                 if stop_type == Err(LibError::MustDestroyContentFirst) {
                     match destroy(robot, world, direction.clone()) {
                         | Ok(_) => {
-                            println!("destroy ok(0)");
+                            //println!("destroy ok(0)");
+                            map=robot_map(world).unwrap();
                             stop_type = Ok(0);
                         }
                         | Err(destroying_error) => {
