@@ -47,13 +47,27 @@ pub use construction_projects::Shape;
 /// we got you, you will receive the unfinished project that you can start again whenever you want,
 /// if that is not a MissionImpossible
 ///
-/// Example:
-/// ```
+///  # Example:
 ///
+///            let mut asp=Asphaltinator::new();
+///             let project= asp.design_project(Shape::Rectangle(3,3));
+///             match project {
+///                 Ok(project_ok) => {
+///                     println!("Project created successfully");
+///                     let work_result=asp.asfalting(
+///                         self, world, project_ok,robot_map(world).unwrap());
+///                     match work_result {
+///                         Ok(_) => {println!("Asphaltinator built successfully your project")}
+///                         Err(unfinished_project) => {
+///                             println!("Well we didn't finished but you can still continue!");
+///                         }
+///                     }
+///                 }
+///                 Err(_) => {
+///                     println!("Project not gone well");
+///                 }
+///             }
 ///
-///
-///
-/// ```
 ///
 pub struct Asphaltinator {
     project_number: usize,
