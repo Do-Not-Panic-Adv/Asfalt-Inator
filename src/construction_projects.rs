@@ -1,14 +1,6 @@
-use crate::construction_projects::StopReason::MissionImpossible;
 use robotics_lib::interface::Direction;
 
-//The Asphalt-inator before building a new type of road must create a project to analise it
-// and understand its need. the Project struct contains:
-//
-//       -action_curves:that describe the path the robot is going to follow to build the road
-//
-//        -cost: the minimum amount of energy it is going to take to build the whole project
-//
-//        -rock: the minimum amount of rock it is going to need to build the project
+use crate::construction_projects::StopReason::MissionImpossible;
 
 ///Error type given to the user after checking a designed project and whenever there is an
 ///interaction in the road building function
@@ -19,32 +11,41 @@ pub enum StopReason {
     MissionImpossible,
 }
 
+///The Asfalt-inator, before building a new type of road, must create a project to analise it
+///and understand the needed materials. the Project struct contains:
+///
+///- `action_curves`, that describe the path the robot is going to follow to build the road
+///- `cost`: the minimum amount of energy it is going to take to build the whole project
+///- `rock`: the minimum amount of rock it is going to need to build the project
 #[derive(Clone)]
 pub struct Project {
     pub curves_action: Vec<Direction>,
     pub min_cost: usize,
     pub min_rocks: usize,
 }
-// Using this Tool your robot is likely to end up having UnFinishedProjects, what are them?
-// An UnFinishedProject is almost like a project except that it does not store the minimum
-// resources, instead, it stores the position where the robot stopped building, and the reason
-// why it stopped, still having stored the missing action to complete its job. Most of the time the reason
-// why the robot ended up having an Unfinished project in its robotics hand it will be because of
-// the low energy level or not enough rocks, when the robot will have found the missing resources
-// it can redesign a project from the unfinished project.Sometimes, though, the reason why it was
-// not possible to
+
+/// Using this Tool, your robot is likely to end up having UnFinishedProjects, so what are they?
+/// An UnFinishedProject is almost like a project, except that it does not store the minimum
+/// resources; instead, it stores the position where the robot stopped building, and the reason
+/// why it stopped, while still storing the part of the road that it wasn't able to build.
+///
+/// Most of the time, the reason
+/// why the robot ended up having an Unfinished project in its hands, it will be because of
+/// the low energy level or not enough rocks. As soon as the robot finds the missing resources,
+/// it can redesign a project from the unfinished project
 #[derive(Clone)]
 pub struct UnFinishedProject {
     pub start_position: (usize, usize),
     pub stop_reason: StopReason,
     pub(crate) curves_action: Vec<Direction>,
 }
+
 impl From<UnFinishedProject> for Project {
     fn from(unfinished_project: UnFinishedProject) -> Project {
         let number_of_steps = unfinished_project.curves_action.len();
         if unfinished_project.stop_reason == MissionImpossible {
             return Project {
-                curves_action: vec![],
+                curves_action: Vec::new(),
                 min_cost: 0,
                 min_rocks: 0,
             };
@@ -56,6 +57,7 @@ impl From<UnFinishedProject> for Project {
         }
     }
 }
+
 impl UnFinishedProject {
     pub fn new(
         curves_action: &Vec<Direction>,
@@ -69,6 +71,7 @@ impl UnFinishedProject {
         }
     }
 }
+
 /// Shapes are the key of the a project, these will then define the path the robot will follow to
 /// place the Streets. There are multiple types of Shapes and we are aiming on updating and giving
 /// more and more option for new and funny construction idea.
@@ -92,14 +95,16 @@ pub enum Shape {
     Square(usize),
     Rectangle(usize, usize),
     Roundabout(usize),
-    Cross(usize), //its a roman cross
+    Cross(usize),
+    //its a roman cross
     LongLong(usize, Direction),
     TShape(usize, usize, Direction),
     LShape(usize, usize, Direction),
 }
+
 impl Shape {
     pub fn get_action_curve(&self) -> Vec<Direction> {
-        let mut res: Vec<Direction> = vec![];
+        let mut res: Vec<Direction> = Vec::new();
         match self {
             | Shape::Square(side_lenght) => {
                 for _ in 0..side_lenght / 2 {
@@ -189,13 +194,9 @@ impl Shape {
     }
 }
 
-//-------------------------------------------------------------------//
-//Here are defined some, very, useful function to design some shapes
-//------------------------------------------------------------------//
-
-//directioner function takes in input a Direction and gives back
-//the tuple representing the vector with the same direction and
-//1 in module, in the cartesian notation
+/// takes in input a Direction and gives back
+///the tuple representing the vector with the same direction and
+///1 in module, in the cartesian notation
 pub fn directioner(d: &Direction) -> (i32, i32) {
     match d {
         | Direction::Up => (-1, 0),
@@ -205,8 +206,8 @@ pub fn directioner(d: &Direction) -> (i32, i32) {
     }
 }
 
-//opposite_direction takes in input a direction and gives as
-//output the opposite direction
+/// takes in input a direction and gives as
+/// output the opposite direction
 pub fn opposite_direction(d: &Direction) -> Direction {
     match d {
         | Direction::Up => Direction::Down,
@@ -216,14 +217,14 @@ pub fn opposite_direction(d: &Direction) -> Direction {
     }
 }
 
-// mirror_direction takes in input a vector of directions and mirror+add
-// to the vector the mirrored directions based on an 'angle' that defines
-// an axes of symmetry:
-// - 0: mirrors at 45
-// - 1: mirrors at 90
-// - 2: mirrors at 180
-pub fn mirror_direction(vec: &Vec<Direction>, angle: u32) -> Vec<Direction> {
-    let mut v: Vec<Direction> = vec![];
+/// takes in input a vector of directions and mirrors it.
+/// The returned vector contains the mirrored directions based on an 'angle' that defines
+/// an axes of symmetry:
+/// - 0: mirrors at 45
+/// - 1: mirrors at 90
+/// - 2: mirrors at 180
+pub fn mirror_direction(vec: &Vec<Direction>, angle: u8) -> Vec<Direction> {
+    let mut v: Vec<Direction> = Vec::new();
     match angle {
         | 0 => {
             for d in (0..vec.len()).rev() {
@@ -265,19 +266,19 @@ pub fn mirror_direction(vec: &Vec<Direction>, angle: u32) -> Vec<Direction> {
     v
 }
 
-// used to complete a shape, as it is now just circle
-// given its 12,5%
+/// used to complete a shape, as it is now just circle,
+/// given its 12,5%
 pub fn complete_shape(vec: &mut Vec<Direction>) {
     for i in 0..3 {
         vec.append(&mut mirror_direction(&vec, i));
     }
 }
 
-//describe a circle as a vector of directions
+///describe a circle as a vector of directions
 pub fn make_circle(size: usize) -> Vec<Direction> {
-    let mut b = vec![];
+    let mut b = Vec::new();
     for _ in 0..(size as f32 * (1.0 - (2.0_f32).sqrt() / 2.0)).ceil() as i32 {
-        let mut a = vec![];
+        let mut a = Vec::new();
         for _ in 0..size {
             a.push(0)
         }
@@ -289,7 +290,7 @@ pub fn make_circle(size: usize) -> Vec<Direction> {
     res
 }
 
-//describe a circle (1/8 of a circle) as 1 in a 2x2 matrix
+///describe a circle (1/8 of a circle) as 1 in a 2x2 matrix
 pub fn circular_2x2(pippo: &mut Vec<Vec<i32>>, k: usize) {
     for riga in 0..(k as f32 * (1.0 - (2.0_f32).sqrt() / 2.0)).ceil() as i32 {
         for colonna in 0..k - (k as f32 * (1.0 - (2.0_f32).sqrt() / 2.0)).ceil() as usize {
@@ -302,9 +303,9 @@ pub fn circular_2x2(pippo: &mut Vec<Vec<i32>>, k: usize) {
     }
 }
 
-//gives the direction from the 1/8 of circle
+///gives the direction from the 1/8 of circle
 pub fn circular_to_direction(mat: &mut Vec<Vec<i32>>, k: usize) -> Vec<Direction> {
-    let mut res = vec![];
+    let mut res = Vec::new();
     let mut raw_index = 0;
     let start = 1;
     for col in start..(k as usize - (k as f32 * (1.0 - (2.0_f32).sqrt() / 2.0)).ceil() as usize) {
@@ -365,7 +366,7 @@ pub fn circular_to_direction(mat: &mut Vec<Vec<i32>>, k: usize) -> Vec<Direction
 //
 // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 
-//function to get expected cost: will be updated for sure
+///function to get expected cost: will be updated for sure (right now it's just *stupid*)
 fn expected_min_cost_tick(number_steps: usize) -> usize {
     return ((number_steps as f32) * 2.5) as usize;
 }
@@ -373,9 +374,9 @@ fn expected_min_cost_tick(number_steps: usize) -> usize {
 #[test]
 fn circle() {
     let k = 5;
-    let mut b = vec![];
+    let mut b = Vec::new();
     for _ in 0..(k as f32 * (1.0 - (2.0_f32).sqrt() / 2.0)).ceil() as i32 {
-        let mut a = vec![];
+        let mut a = Vec::new();
         for _ in 0..k {
             a.push(0)
         }

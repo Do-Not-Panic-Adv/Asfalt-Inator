@@ -1,4 +1,4 @@
-use robotics_lib::interface::{destroy, go, put, robot_map, Direction, Tools};
+use robotics_lib::interface::{destroy, Direction, go, put, robot_map, Tools};
 use robotics_lib::runner::Runnable;
 use robotics_lib::utils::LibError;
 use robotics_lib::world::tile::{Content, TileType};
@@ -6,34 +6,34 @@ use robotics_lib::world::World;
 
 pub use construction_projects::Shape;
 
-use crate::construction_projects::StopReason::MissionImpossible;
 use crate::construction_projects::{directioner, Project, StopReason, UnFinishedProject};
+use crate::construction_projects::StopReason::MissionImpossible;
 
 pub mod construction_projects;
 
-/// -----Welcommen in the Asphalt-inators house, entry pls!-----
-/// # Tool: Asphaltinator
+/// -----Welcommen in the Asfalt-inators house, entry pls!-----
+/// # Tool: AsfaltInator
 /// a useful tool used to plan and build Streets on the map to get where you want, when u want,
 /// always on the road. The main aim of the robot is to trace some smart and pragmatic path to
 /// connect the areas of its interest
 ///
 /// ## Usage
-/// you start by deciding which type of street type are you going to build. Once your Asphaltinator
+/// you start by deciding which type of street type are you going to build. Once your Asfalt-inator
 /// has designed ur desired Project you are ready to see some streets get built. To sum up and add
 /// some information on this marvelous piece of engineering, here are the main functionality:
 ///
-/// -Designing Projects: just designing projects... and recycle unfinished one, but we will get on
+/// - Designing Projects: just designing projects... and recycle unfinished one, but we will get on
 ///                     that later.
 ///
 ///
-/// -Having FUN on ur Asphalt-inator: with the function asphalt u can see ur map starting to get more
+/// - Having FUN on ur Asfalt-inator: with the function asphalt u can see ur map starting to get more
 ///                                   and more "concrete", the climate change will like this
 ///
-/// -Checks Design condition: Verify if it is possible or not to ASPHALT the designed area, and
+/// - Checks Design condition: Verify if it is possible or not to ASPHALT the designed area, and
 ///                           require a minimum amount of resources from the robot
 ///
 ///
-/// The Asphaltinator Struct is pretty simple, let's get into this:
+/// The AsfaltInator Struct is pretty simple, let's get into this:
 ///
 ///    - project_number: it stores the value of the number of projects designed
 ///
@@ -49,7 +49,7 @@ pub mod construction_projects;
 ///
 ///  # Example:
 ///
-///            let mut asp=Asphaltinator::new();
+///            let mut asp=AsfaltInator::new();
 ///             let project= asp.design_project(Shape::Rectangle(3,3));
 ///             match project {
 ///                 Ok(project_ok) => {
@@ -57,7 +57,7 @@ pub mod construction_projects;
 ///                     let work_result=asp.asfalting(
 ///                         self, world, project_ok,robot_map(world).unwrap());
 ///                     match work_result {
-///                         Ok(_) => {println!("Asphaltinator built successfully your project")}
+///                         Ok(_) => {println!("AsfaltInator built successfully your project")}
 ///                         Err(unfinished_project) => {
 ///                             println!("Well we didn't finished but you can still continue!");
 ///                         }
@@ -69,20 +69,22 @@ pub mod construction_projects;
 ///             }
 ///
 ///
-pub struct Asphaltinator {
+pub struct AsfaltInator {
     project_number: usize,
     unfinished_projects: Vec<UnFinishedProject>, //add that u can not save an unfinished project that ended with mission impossible to ur unfinsihedproject
 }
 
-impl Tools for Asphaltinator {}
+impl Tools for AsfaltInator {}
 
-impl Asphaltinator {
+impl AsfaltInator {
+    /// returns a new instance of Asfaltinator
     pub fn new() -> Self {
-        Asphaltinator {
+        AsfaltInator {
             project_number: 0,
-            unfinished_projects: vec![],
+            unfinished_projects: Vec::new(),
         }
     }
+    /// saves an unfinished project, to be resumed later
     pub fn save_unfinished_project(&mut self, un_finished_project: UnFinishedProject) -> Result<(), ()> {
         return if !(un_finished_project.stop_reason == MissionImpossible) {
             self.unfinished_projects.push(un_finished_project.clone());
@@ -91,8 +93,10 @@ impl Asphaltinator {
             Err(())
         };
     }
+    /// designs a project out of the desired shape, unless the unfinished projects number currently exceed
+    /// half of the total projects
     pub fn design_project(&mut self, shape: Shape) -> Result<Project, ()> {
-        if !self.project_number > 2 * self.unfinished_projects.len() {
+        if self.unfinished_projects.len() < self.project_number / 2 {
             self.project_number += 1;
             return Ok(Project {
                 curves_action: shape.get_action_curve(),
@@ -103,18 +107,18 @@ impl Asphaltinator {
             Err(())
         }
     }
+
+    /// checks if the whole project can be executed without going out of bounds and if there are enough energy and resources in the backpack
     pub fn check_project_here(robot: &impl Runnable, world: &World, project: &Project) -> Result<(), StopReason> {
-        //Just checks if the project is inside the map in the whole project
         let (x_position, y_position) = (robot.get_coordinate().get_row(), robot.get_coordinate().get_col());
         let map_size = robot_map(world).expect("need to check").len();
         let possible =
-            Asphaltinator::check_directions_allowed(x_position, y_position, &project.curves_action, map_size);
+            AsfaltInator::check_directions_allowed(x_position, y_position, &project.curves_action, map_size);
 
         if !possible {
             return Err(MissionImpossible);
         }
 
-        //checks if has minimum energy and rocks
         let robot_rocks = robot.get_backpack().get_contents();
         let robot_rocks = robot_rocks.get(&Content::Rock(0)).unwrap();
         let robot_energy = robot.get_energy().get_energy_level();
@@ -127,6 +131,7 @@ impl Asphaltinator {
         Ok(())
     }
 
+    /// makes the magic happen by building your project. Returns an UnfinishedProject on failure
     #[allow(unused_assignments)]
     pub fn asfalting(
         &self,
@@ -256,7 +261,7 @@ impl Asphaltinator {
                             return Err(UnFinishedProject {
                                 start_position: (0, 0),
                                 stop_reason: StopReason::MissingRocks,
-                                curves_action: vec![],
+                                curves_action: Vec::new(),
                             });
                         }
                     },
@@ -317,7 +322,7 @@ impl Asphaltinator {
 // ⢁⠊⢅⡐⢂⠰⠀⡌⠠⢁⠐⡀⠂⢈⠀⠌⠀⠀⠂⠀⠀⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣞⣁⣀⡀⠀⠀⠀⠀⠀⠀⢸⠃⠀⠛⠋⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠁⠀⠀⠀⢀⠠⠀⢁⠂⠐⠠⢀⠁⢂
 // ⢁⠎⢠⠐⡈⠄⠡⢀⠁⠂⠄⠐⠈⡀⠠⠀⠀⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿⠟⠛⠁⠀⠀⠀⠈⠀⠀⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠠⠀⠠⠈⠐⠠⠈⠄
 // ⠃⡌⠄⢢⠁⠌⡐⠠⢈⠐⠈⡀⠁⢀⠀⠠⠐⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣿⣿⠟⢁⡀⠀⠀⠀⠀⠀⠀⠀⢀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀   ⠐⠈⠀⠀⠄⠁⡈⠄⢈⠐⡀
-// ⠡⠐⠌⠂⠌⡐⠠⠁⠄⠂⠁⡀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⣿⠟⠉⠉⠉⠓⠣⣦⡀⠀⠀⠀⠀⢸⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀Asphalt-inator  ⠂⠀⠐⠀⡀⠂⠠⠐
+// ⠡⠐⠌⠂⠌⡐⠠⠁⠄⠂⠁⡀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⣿⠟⠉⠉⠉⠓⠣⣦⡀⠀⠀⠀⠀⢸⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀Asfalt-inator  ⠂⠀⠐⠀⡀⠂⠠⠐
 // ⠜⡈⡐⢉⠐⠠⠁⠌⢀⠂⠁⠀⠐⠀⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣴⣿⣶⣶⣦⣤⣀⠘⣧⣠⣿⠟⠁⠀⠀⠀⣠⣄⡀⠈⣷⡀⠀⠀⠀⣾⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ an Evil inc. Product   ⢀⠐⠀⠡⠀
 // ⠐⠤⠐⠂⠌⠠⢁⠂⠠⠀⠌⠀⠠⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⠋⢙⣿⠛⠉⠉⢙⣿⣿⣿⡿⠋⠀⠀⠀⢀⣾⣽⣿⣿⣷⡜⡇⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠐⠀⡀⠄⠈⡀⠁
 // ⢌⠠⠑⡈⠄⡁⠂⠠⠁⠠⠀⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⡟⠀⠀⠀⠀⣾⣿⣿⣿⠀⠀⠀⠀⠀⠈⠻⣿⣟⣾⠟⢱⣏⠀⠀⢸⠃⣠⠴⠒⠓⠒⢤⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠂⠀⠀⠂⢀⠁
