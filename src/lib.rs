@@ -1,4 +1,4 @@
-use robotics_lib::interface::{destroy, Direction, go, put, robot_map, Tools};
+use robotics_lib::interface::{destroy, go, put, robot_map, Direction, Tools};
 use robotics_lib::runner::Runnable;
 use robotics_lib::utils::LibError;
 use robotics_lib::world::tile::{Content, TileType};
@@ -6,8 +6,8 @@ use robotics_lib::world::World;
 
 pub use construction_projects::Shape;
 
-use crate::construction_projects::{directioner, Project, StopReason, UnFinishedProject};
 use crate::construction_projects::StopReason::MissionImpossible;
+use crate::construction_projects::{directioner, Project, StopReason, UnFinishedProject};
 
 pub mod construction_projects;
 
@@ -112,8 +112,7 @@ impl AsfaltInator {
     pub fn check_project_here(robot: &impl Runnable, world: &World, project: &Project) -> Result<(), StopReason> {
         let (x_position, y_position) = (robot.get_coordinate().get_row(), robot.get_coordinate().get_col());
         let map_size = robot_map(world).expect("need to check").len();
-        let possible =
-            AsfaltInator::check_directions_allowed(x_position, y_position, &project.curves_action, map_size);
+        let possible = AsfaltInator::check_directions_allowed(x_position, y_position, &project.curves_action, map_size);
 
         if !possible {
             return Err(MissionImpossible);
@@ -133,8 +132,7 @@ impl AsfaltInator {
 
     /// makes the magic happen by building your project. Returns an UnfinishedProject on failure
     #[allow(unused_assignments)]
-    pub fn asfalting(
-        &self,
+    pub fn start_asfalting(
         robot: &mut impl Runnable,
         world: &mut World,
         project: Project,
