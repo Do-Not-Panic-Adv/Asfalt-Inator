@@ -1,13 +1,13 @@
-use robotics_lib::interface::{destroy, go, put, robot_map, Direction, Tools};
+pub use construction_projects::Shape;
+use robotics_lib::interface::{destroy, Direction, go, put, robot_map, Tools};
 use robotics_lib::runner::Runnable;
 use robotics_lib::utils::LibError;
 use robotics_lib::world::tile::{Content, TileType};
 use robotics_lib::world::World;
+use std::sync::Mutex;
 
-pub use construction_projects::Shape;
-
-use crate::construction_projects::StopReason::MissionImpossible;
 use crate::construction_projects::{directioner, Project, StopReason, UnFinishedProject};
+use crate::construction_projects::StopReason::MissionImpossible;
 
 pub mod construction_projects;
 
@@ -70,8 +70,11 @@ pub mod construction_projects;
 ///
 ///
 pub struct AsfaltInator {
-    project_number: usize,
-    unfinished_projects: Vec<UnFinishedProject>, //add that u can not save an unfinished project that ended with mission impossible to ur unfinsihedproject
+    unfinished_projects: Vec<UnFinishedProject>,
+}
+
+lazy_static::lazy_static! {
+    static ref PROJECT_NUMBER: Mutex<u32> = Mutex::new(0);
 }
 
 impl Tools for AsfaltInator {}
@@ -80,10 +83,10 @@ impl AsfaltInator {
     /// returns a new instance of Asfaltinator
     pub fn new() -> Self {
         AsfaltInator {
-            project_number: 0,
             unfinished_projects: Vec::new(),
         }
     }
+
     /// saves an unfinished project, to be resumed later
     pub fn save_unfinished_project(&mut self, un_finished_project: UnFinishedProject) -> Result<(), ()> {
         return if !(un_finished_project.stop_reason == MissionImpossible) {
@@ -96,16 +99,17 @@ impl AsfaltInator {
     /// designs a project out of the desired shape, unless the unfinished projects number currently exceed
     /// half of the total projects
     pub fn design_project(&mut self, shape: Shape) -> Result<Project, ()> {
-        if self.unfinished_projects.len() < self.project_number / 2 {
-            self.project_number += 1;
-            return Ok(Project {
-                curves_action: shape.get_action_curve(),
-                min_cost: 0,
-                min_rocks: 0,
-            });
-        } else {
-            Err(())
+        if let Ok(mut n) = PROJECT_NUMBER.lock() {
+            if (self.unfinished_projects.len() as u32) < *n / 2 || *n <= 3 {
+                *n = *n + 1;
+                return Ok(Project {
+                    curves_action: shape.get_action_curve(),
+                    min_cost: 0,
+                    min_rocks: 0,
+                });
+            }
         }
+        Err(())
     }
 
     /// checks if the whole project can be executed without going out of bounds and if there are enough energy and resources in the backpack
