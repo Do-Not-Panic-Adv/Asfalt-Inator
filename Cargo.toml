@@ -1,6 +1,6 @@
 [package]
 name = "asfalt_inator"
-version = "0.5.0"
+version = "0.5.1"
 edition = "2021"
 authors = ["Enrico Dalla Cia", "Matteo Bregola", "Marco Pulze", "Riccardo Libanora"]
 description = "a platypus? PERRY the plat- sorry about that. This tool allows you to quickly design and build roads in various shapes"
